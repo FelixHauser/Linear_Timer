@@ -12,14 +12,22 @@ bool countDown=false;
 unsigned long timerLength;
 unsigned long timerUpdated;
 unsigned long countDownenMs;
+long newPos;
+long oldPos;
 
 RotaryEncoder encoder(ENCODER_CW, ENCODER_CCW, ROTARY_BUTTON, DEBOUNCE_INTERVAl); //declare encoder object
 
+const int  en = 2, rw = 1, rs = 0, d4 = 4, d5 = 5, d6 = 6, d7 = 7, bl = 3;  // pinout
+const int i2c_addr = 0x27;    //I2C Address - change if reqiuired
 LiquidCrystal_I2C lcd(i2c_addr, en, rw, rs, d4, d5, d6, d7, bl, POSITIVE);  //declare LCD object
+
+
+CRGB leds[NUM_LEDS]; //declare LED strip object 
+
 
 void setup(){
   
-  Serial.begin(115200);
+  Serial.begin(9600);
     
   FastLED.addLeds<LED_TYPE, DATA_PIN, GRB>(leds, NUM_LEDS);
   FastLED.setBrightness(  BRIGHTNESS );
@@ -34,6 +42,7 @@ void setup(){
   lcd.setCursor(TIME_CURSOR,1);
   lcd.print(" 0");
   delay(100);
+  
 } 
 
 
@@ -43,7 +52,7 @@ void loop() {
   encoder.tick();
 
   // get the current physical position and calc the logical position
-  int newPos = encoder.getPosition() * ROTARYSTEPS;
+  newPos = encoder.getPosition() * ROTARYSTEPS;
 
   if (newPos < ROTARYMIN) {
     encoder.setPosition(ROTARYMIN / ROTARYSTEPS);
@@ -56,21 +65,25 @@ void loop() {
     
   } 
 
-  updateScreen(newPos);
+  if(newPos!=oldPos) updateScreen();
+  
+  oldPos=newPos;
 
-  if (encoder.update() && encoder.read()==LOW) encoderPressed(newPos);
+  if (encoder.update() && encoder.read()==LOW) encoderPressed(newPos);  //if encoder button is pressed
+
     
   if (countDown==true) timerDown();
+    
   
 }
 
 
 
 
-void updateScreen(int printPosition){
+void updateScreen(){
 
   lcd.setCursor(TIME_CURSOR,1);
-  lcd.print(timeString(printPosition));
+  lcd.print(timeString());
   
   }
 
@@ -120,12 +133,13 @@ void timerDown(){
      
     unsigned long temporal =previousMillis-timerLength; //time remaining
      
-    unsigned long ledsRestar=map(temporal, 0, countDownenMs, 0, 37);  //leds corresponding to the time already passed
+    unsigned long ledsRestar=map(temporal, 0, countDownenMs, 0, NUM_LEDS);  //leds corresponding to the time already passed
 
     doSomenthingWithLeds((NUM_LEDS-ledsRestar), NUM_LEDS, false, false, BLACK);
 
-    if (ledsRestar>=NUM_LEDS){  // if the countdown has come to an end...
 
+    if (temporal>=countDownenMs){  // if the countdown has come to an end...
+      
       countDown=false;
 
       lcd.setCursor(TIME_CURSOR,1);
@@ -140,20 +154,20 @@ void timerDown(){
 
 
 
-String timeString (int minutes){
+String timeString (){
 
-  String foo="";
+ String stringToReturn;
   
-  if (minutes>=10){
-    
-    foo=minutes;
-    
-    }else{
-      
-      foo=" "+minutes;
-      
-      }
+  stringToReturn=newPos;
 
-  return foo;
+  if (newPos<10){
+    stringToReturn=" "+stringToReturn;
+    }
+      
+  return stringToReturn;
   
   }
+
+
+
+  

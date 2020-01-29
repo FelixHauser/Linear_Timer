@@ -23,13 +23,6 @@
 #include <RotaryEncoder.h>
 
 
-//++++++++++++++++ Define LCD Stuff +++++++++++++++++//
-
-const int  en = 2, rw = 1, rs = 0, d4 = 4, d5 = 5, d6 = 6, d7 = 7, bl = 3;  // pinout
-const int i2c_addr = 0x27;    //I2C Address - change if reqiuired
-
-
-
 //++++++++++++++++ Define Rotary Encoder Stuff +++++++++++++++++//
 
 #define ROTARYMIN 0
@@ -45,14 +38,13 @@ const int i2c_addr = 0x27;    //I2C Address - change if reqiuired
 
 //++++++++++++++++ Define LED Strip Stuff +++++++++++++++++//
 
-#define DATA_PIN 2  
+#define DATA_PIN 12  
 #define LED_TYPE WS2812B
 #define COLOR_ORDER GRB
 
 
 #define LIGHT_UP_SPEED 25
 
-CRGB leds[NUM_LEDS]; 
 
 
 //++++++++++++++++ Define Countdown Stuff +++++++++++++++++//
