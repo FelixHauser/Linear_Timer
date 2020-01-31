@@ -37,10 +37,8 @@ void setup(){
   // Set LCD type as 16 char, 2 rows
   lcd.begin(COLUMNS,ROWS);
   lcd.clear();
-  lcd.setCursor(4,0);
-  lcd.print("Minuten:");
-  lcd.setCursor(TIME_CURSOR,1);
-  lcd.print(" 0");
+  lcd.setCursor(0,0);
+  lcd.print("Zeit: ");
   delay(100);
   
 } 
@@ -65,7 +63,7 @@ void loop() {
     
   } 
 
-  if(newPos!=oldPos) updateScreen();
+  if(newPos!=oldPos) printOnLcd (timeString(), 0, TIME_CURSOR);
   
   oldPos=newPos;
 
@@ -76,17 +74,6 @@ void loop() {
     
   
 }
-
-
-
-
-void updateScreen(){
-
-  lcd.setCursor(TIME_CURSOR,1);
-  lcd.print(timeString());
-  
-  }
-
 
 
 
@@ -106,7 +93,6 @@ void doSomenthingWithLeds(int fromLed, int toLed, bool wait, bool increment, lon
 
 
 void encoderPressed(int newPosition){
-
 
       doSomenthingWithLeds(0, NUM_LEDS, true, true, BLUE);
 
@@ -128,43 +114,87 @@ void timerDown(){
 
   if (currentMillis-previousMillis>=COUNTDOWN_UPDATE){  // update that every X seconds
 
-
     previousMillis = currentMillis;
      
     unsigned long temporal =previousMillis-timerLength; //time remaining
      
-    unsigned long ledsRestar=map(temporal, 0, countDownenMs, 0, NUM_LEDS);  //leds corresponding to the time already passed
-
+    unsigned long ledsRestar=map(temporal, 0, countDownenMs, 0, NUM_LEDS);  //leds corresponding to the elapsedTime
     doSomenthingWithLeds((NUM_LEDS-ledsRestar), NUM_LEDS, false, false, BLACK);
 
+    lcdTimer(temporal);
 
     if (temporal>=countDownenMs){  // if the countdown has come to an end...
       
       countDown=false;
-
-      lcd.setCursor(TIME_CURSOR,1);
-      lcd.print("Done!");
+      printOnLcd("     Done !     ", 1, 0);
    
       }
     
-    }
-  
+    }  
 }
 
 
 
+void lcdTimer (unsigned long elapsedTime){
+
+  // timeRemaining = setTime-elapsedTime = setTime-(currentMillis-initialMillis)
+
+  //countDownenMs=ms of countdown. This is a fixed value
+  //timerLength=millis() at the beginning of the counter
+  //elapsedTime=curentMillis-timerLength
+
+  unsigned long remainingMillis=countDownenMs-elapsedTime;
+  unsigned long minutes=remainingMillis/60000;
+  unsigned long seconds=(remainingMillis-minutes*60000)/1000;
+  
+  char foo[16];
+  
+
+ if (minutes>=10){
+  
+  if (seconds>=10){
+    
+      sprintf(foo, "%ld:%ld", minutes, seconds);
+     }else{
+      sprintf(foo, "%ld:0%ld", minutes, seconds);
+    }
+    
+  }else{
+
+  if (seconds>=10){
+      sprintf(foo, " %ld:%ld", minutes, seconds);
+     }else{
+      sprintf(foo, " %ld:0%ld", minutes, seconds);
+    }
+    
+ }
+  
+    
+  printOnLcd (foo, 1, 5);
+  
+}
+  
+
+
+void printOnLcd (String stringToPrint, int line, int row){
+
+  lcd.setCursor(row, line);
+  lcd.print(stringToPrint);
+  
+  }
+
 
 String timeString (){
 
- String stringToReturn;
-  
-  stringToReturn=newPos;
+char data[16];
 
-  if (newPos<10){
-    stringToReturn=" "+stringToReturn;
+if (newPos>=10){
+    sprintf(data, "%d min", newPos);
+  }else{
+    sprintf(data, " %d min", newPos);
     }
-      
-  return stringToReturn;
+
+return data;
   
   }
 

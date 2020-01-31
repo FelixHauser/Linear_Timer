@@ -13,7 +13,7 @@
 
 #define ROWS 2
 #define COLUMNS 16
-#define TIME_CURSOR 7  //where the cursor starts to write on the 2nd line
+#define TIME_CURSOR 6  //where the cursor starts to write after the title (Zeit :")
 
 //++++++++++++++++ Include needed libraries +++++++++++++++++//
 
@@ -49,7 +49,7 @@
 
 //++++++++++++++++ Define Countdown Stuff +++++++++++++++++//
 
-#define COUNTDOWN_UPDATE 10*1000
+#define COUNTDOWN_UPDATE 1*1000
 
 
 
