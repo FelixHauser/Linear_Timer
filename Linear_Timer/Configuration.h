@@ -2,6 +2,14 @@
 // Maker: Felix Hauser  https://github.com/FelixHauser
 // Open Source Project: Copy, distribute but document and attribute credit.
 
+//++++++++++++++++ Define PINS +++++++++++++++++//
+
+#define ENCODER_CW 6  //pin1
+#define ENCODER_CCW 5 //pin2
+#define ROTARY_BUTTON 8  //pin button
+
+#define BUZZER_PIN 9
+
 
 //++++++++++++++++ Important customizable settings +++++++++++++++++//
 
@@ -25,20 +33,18 @@
 
 //++++++++++++++++ Define Rotary Encoder Stuff +++++++++++++++++//
 
-#define ROTARYMIN 0
+#define ROTARYMIN -1 //0
 #define START_POSITION 0
 
-#define ENCODER_CW 6  //pin1
-#define ENCODER_CCW 5 //pin2
 
-#define ROTARY_BUTTON 8  //pin button
 #define DEBOUNCE_INTERVAl 10  //debounce interval
+
 
 
 
 //++++++++++++++++ Define LED Strip Stuff +++++++++++++++++//
 
-#define DATA_PIN 12  
+#define DATA_PIN 12
 #define LED_TYPE WS2812B
 #define COLOR_ORDER GRB
 
@@ -65,3 +71,21 @@
 #define GREEN_YELLOW 0xADFF2F
 #define VIOLET 0xEE82EE
 #define PINK 0xFFC0CB
+
+
+//++++++++++++++++ SegeL +++++++++++++++++//
+
+#define PHASES_TIMER " Compact"
+
+#define PHASE1 "     Phase 1    "
+#define PHASE2 "     Phase 2    "
+#define PHASE3 "     Phase 3    "
+#define PHASE4 "     Phase 4    "
+#define PHASE5 "     Phase 5    "
+#define PHASE6 "     Phase 6    "
+
+#define TIME_PHASE1 5
+#define TIME_PHASE2 15
+#define TIME_PHASE3 30
+#define TIME_PHASE4 5
+#define TIME_PHASE5 5

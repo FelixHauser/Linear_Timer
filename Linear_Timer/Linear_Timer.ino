@@ -4,7 +4,8 @@
 
 #include "Configuration.h"
 
-
+bool segel=false;
+int segelPhase;
 
 unsigned long previousMillis;
 unsigned long currentMillis;
@@ -27,22 +28,35 @@ CRGB leds[NUM_LEDS]; //declare LED strip object
 
 void setup(){
   
-  Serial.begin(9600);
+  //Serial.begin(9600);
     
   FastLED.addLeds<LED_TYPE, DATA_PIN, GRB>(leds, NUM_LEDS);
   FastLED.setBrightness(  BRIGHTNESS );
-  
-  encoder.setPosition(START_POSITION / ROTARYSTEPS);
 
-  // Set LCD type as 16 char, 2 rows
+  encoder.setPosition(START_POSITION / ROTARYSTEPS);
+  
   lcd.begin(COLUMNS,ROWS);
   lcd.clear();
   lcd.setCursor(0,0);
   lcd.print("Zeit: ");
+
+  pinMode(BUZZER_PIN, OUTPUT);
+
   delay(100);
-  
+   
 } 
 
+void buzzer(int freq, int firstDelay, int secondDelay, int repeat){
+
+  for (int foo=1; foo<repeat; foo++){
+    
+    tone (BUZZER_PIN, freq);
+    delay (firstDelay);
+    noTone (BUZZER_PIN);
+    delay (secondDelay);
+  }
+  
+ }
 
 void loop() {
 
@@ -63,18 +77,57 @@ void loop() {
     
   } 
 
-  if(newPos!=oldPos) printOnLcd (timeString(), 0, TIME_CURSOR);
+  if(newPos!=oldPos) printOnLcd (timeString(newPos), 0, TIME_CURSOR);
   
   oldPos=newPos;
 
-  if (encoder.update() && encoder.read()==LOW) encoderPressed(newPos);  //if encoder button is pressed
-
-    
+  
+  if (encoder.update() && encoder.read()==LOW) encoderPressed();  //if encoder button is pressed
+  
   if (countDown==true) timerDown();
     
   
 }
 
+
+
+void doSegel(){
+
+  lcd.clear();
+  segelPhase++;
+  buzzer(1000, 1000, 300, 4);
+  
+  switch (segelPhase){
+            case 2:
+              printOnLcd (PHASE2, 0, 0);
+              setTimeToCount(TIME_PHASE2);  
+              break;
+              
+            case 3:
+              setTimeToCount(TIME_PHASE3);           
+              printOnLcd (PHASE3, 0, 0);
+              break;
+              
+            case 4:
+              setTimeToCount(TIME_PHASE4);            
+              printOnLcd (PHASE4, 0, 0);
+              break;
+                        
+            case 5:          
+              setTimeToCount(TIME_PHASE5);             
+              printOnLcd (PHASE5, 0, 0);
+              break;
+
+            case 6:
+              printOnLcd(PHASE6, 0, 0);
+              segelPhase=1;
+              segel=false;
+              break;
+        }
+
+  countDown=true;
+  
+  }
 
 
 void doSomenthingWithLeds(int fromLed, int toLed, bool wait, bool increment, long color){
@@ -90,16 +143,53 @@ void doSomenthingWithLeds(int fromLed, int toLed, bool wait, bool increment, lon
   }
 
 
+void encoderPressed(){
+
+if (countDown==false){
+  
+  if (newPos<=0) {  // (newPos==-1)
+    
+    segel=true;
+    segelPhase=1; 
+    setTimeToCount(TIME_PHASE1); //initial selgel phase
+    printOnLcd (PHASE1, 0, 0);
+    
+  }else{
+
+    setTimeToCount(newPos);
+    
+    }
+
+}else{
+
+  segel=false;
+  segelPhase=1;
+  countDown=false;
+  
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("Zeit: ");
+
+  int pepe=encoder.getPosition() * ROTARYSTEPS;
+  
+  printOnLcd (timeString(pepe), 0, TIME_CURSOR);
+  
+  doSomenthingWithLeds(0, NUM_LEDS, false, false, BLACK); //change to green
+  
+  
+  }
+
+}
 
 
-void encoderPressed(int newPosition){
+void setTimeToCount(int timeToCount){
 
-      doSomenthingWithLeds(0, NUM_LEDS, true, true, BLUE);
+      doSomenthingWithLeds(0, NUM_LEDS, true, true, BLUE);  //light up all leds sequentally
+      doSomenthingWithLeds(0, NUM_LEDS, false, false, GREEN); //change to green
 
-      doSomenthingWithLeds(0, NUM_LEDS, false, false, GREEN);
+      timerLength=millis(); //starting time
 
-      timerLength=millis(); //starting time    
-      countDownenMs = 60*newPosition*1000L;   // countdown time in ms
+      countDownenMs = 60*timeToCount*1000L;   // countdown time in ms
       previousMillis=0;
       countDown=true;
   
@@ -124,13 +214,18 @@ void timerDown(){
     lcdTimer(temporal);
 
     if (temporal>=countDownenMs){  // if the countdown has come to an end...
-      
+
       countDown=false;
-      printOnLcd("     Done !     ", 1, 0);
-   
-      }
-    
-    }  
+      buzzer(1000, 1000, 300, 4);
+      if (segel==false){
+            printOnLcd("     Done !     ", 1, 0);
+        }else{
+
+          doSegel();
+          
+          }
+     } 
+   }  
 }
 
 
@@ -169,7 +264,6 @@ void lcdTimer (unsigned long elapsedTime){
     
  }
   
-    
   printOnLcd (foo, 1, 5);
   
 }
@@ -184,15 +278,23 @@ void printOnLcd (String stringToPrint, int line, int row){
   }
 
 
-String timeString (){
+
+String timeString (int timeToWrite){
 
 char data[16];
 
-if (newPos>=10){
-    sprintf(data, "%d min", newPos);
-  }else{
-    sprintf(data, " %d min", newPos);
-    }
+if (timeToWrite>=10){
+    sprintf(data, "%d min", timeToWrite);
+    
+  }else if (timeToWrite<10 && timeToWrite>0){
+    
+    sprintf(data, " %d min", timeToWrite);
+    
+    }else{
+      
+    sprintf(data, PHASES_TIMER, newPos);
+    
+      }
 
 return data;
   
